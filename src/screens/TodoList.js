@@ -1,111 +1,72 @@
-import React, { useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
-import { AntDesign, Entypo } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useQuery } from "@apollo/react-hooks";
+import gql from "graphql-tag";
+import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
+import { Entypo } from "@expo/vector-icons";
 
-const TodoList = ({ navigation }) => {
-  const [data, setData] = useState([
-    {
-      name: "Todo 1",
-      Description: "This is my Todo 1",
-    },
-    {
-      name: "Todo 2",
-      Description: "This is my Todo 2",
-    },
-    {
-      name: "Todo 3",
-      Description: "This is my Todo 3",
-    },
-    {
-      name: "Todo 4",
-      Description: "This is my Todo 4",
-    },
-    {
-      name: "Todo 5",
-      Description: "This is my Todo 5",
-    },
-    {
-      name: "Todo 6",
-      Description: "This is my Todo 6",
-    },
-    {
-      name: "Todo 7",
-      Description: "This is my Todo 7",
-    },
-    {
-      name: "Todo 8",
-      Description: "This is my Todo 8",
-    },
-  ]);
+const FETCH_TODOS = gql`
+  query {
+    todos(order_by: { created_at: desc }) {
+      id
+      title
+    }
+  }
+`;
 
+const Graphql = ({ navigation }) => {
+  const { data, error, loading } = useQuery(FETCH_TODOS);
+  if (loading) {
+    return <Text>Loading</Text>;
+  }
   return (
     <View style={styles.main}>
+      <TouchableOpacity
+        onPress={() => {
+          navigation.push("CreateTodo");
+        }}
+      >
+        <Entypo
+          style={styles.addIcon}
+          name="add-to-list"
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
       <FlatList
-        data={data}
-        keyExtractor={(name) => data.name}
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        data={data.todos}
+        keyExtractor={(data) => data.id}
         renderItem={({ item }) => {
           return (
-            <View style={styles.flatList}>
-              <View style={styles.flexView}>
-                <TouchableOpacity
-                  onPress={() => {
-                    navigation.push("ShowTodo");
-                  }}
-                >
-                  <Text>{item.name}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    let array = [...data];
-                    let index = array.indexOf(item);
-                    array.splice(index, 1);
-                    setData([...array]);
-                    console.log(data);
-                  }}
-                >
-                  <AntDesign name="delete" size={24} color="#007aff" />
-                </TouchableOpacity>
-              </View>
+            <View style={styles.listView}>
+              <Text style={styles.listText}>Description: {item.title}</Text>
             </View>
           );
         }}
       />
-      <View style={styles.navigationButton}>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.push("CreateTodo");
-          }}
-        >
-          <Entypo name="add-to-list" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
-export default TodoList;
+
+export default Graphql;
 
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    backgroundColor: "white",
-    padding: 10,
   },
-  flatList: {
-    flexDirection: "column",
-    marginVertical: 10,
-    padding: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: "silver",
-  },
-  flexView: {
-    flexDirection: "row",
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  navigationButton: {
-    flexDirection: "row",
+  addIcon: {
     alignSelf: "flex-end",
+    marginRight: 15,
+    marginVertical: 10,
+  },
+  listView: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 15,
+    borderBottomWidth: 1,
+  },
+  listText: {
+    fontSize: 16,
   },
 });

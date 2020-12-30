@@ -1,17 +1,33 @@
 import React, { useState } from "react";
 import { Button, StyleSheet, TextInput, View, Text } from "react-native";
+import gql from "graphql-tag";
+import { useMutation } from "@apollo/react-hooks";
+
 
 const CreateTodo = ({ navigation }) => {
-  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const INSERT_TODO =  gql`
+  mutation ($text: String!){
+   insert_todos (
+     objects: [{
+       title: $text,
+     }]
+   ){
+     returning {
+       id
+       title
+     }
+   }
+ }
+  `
+  const submit = () => {
+    insertTodo({
+      variables: { text: description },
+    });
+  };
+  const [insertTodo, { loading, error }] = useMutation(INSERT_TODO);
   return (
     <View style={styles.main}>
-      <Text style={styles.text}>Title:</Text>
-      <TextInput
-        value={title}
-        onChangeText={(newValue) => setTitle(newValue)}
-        style={styles.name}
-      />
       <Text style={styles.text}>Description:</Text>
       <TextInput
         value={description}
@@ -20,7 +36,8 @@ const CreateTodo = ({ navigation }) => {
       />
       <Button
         title="Add-to-List"
-        onPress={() => {
+        onPress={() => {  
+          submit()
           navigation.push("TodoList");
         }}
       />
@@ -47,8 +64,6 @@ const styles = StyleSheet.create({
   },
   description: {
     padding: 10,
-    flex: 1,
-    flexDirection: "row",
     borderWidth: 1,
     borderColor: "silver",
     marginBottom: 10,
